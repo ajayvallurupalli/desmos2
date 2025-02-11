@@ -32,3 +32,9 @@ instance altResult :: (Semigroup s) => Alt (Result s) where
 -- and it follows Annihilation by since monoid empty follows annihilation
 instance plusResult :: (Monoid s) => Plus (Result s) where
   empty = Result $ Left mempty
+
+instance bindResult :: (Semigroup s) => Bind (Result s) where
+  bind (Result (Left r))     _      = Result $ Left r
+  bind (Result (Right r))    f      = f r
+
+instance monadResult :: (Semigroup s) => Monad (Result s)
