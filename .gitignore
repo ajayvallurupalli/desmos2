@@ -8,4 +8,4 @@
 /.purs*
 /.psa*
 /.spago
-/src
+/src/StringTree.purs
