@@ -16,7 +16,7 @@ type ParserState a = Tuple String a
 type ParseFunction e a = 
   ParserError e => String -> Either e (ParserState a)
 
-class Eq e <= ParserError e where 
+class ParserError e where 
   eof :: e
   invalidChar :: Char -> e
   parseFail :: String -> e
@@ -90,7 +90,13 @@ some cons p = cons <$> p <*> defer \_ -> many cons p
 some' :: ∀ e a. Parser e a -> Parser e (Array a)
 some' = some cons
 
-parseUntil :: ∀ e a f. Unfoldable f => ParserError e => (a -> f a -> f a) -> (f a -> f a) -> Parser e a -> Parser e (f a)
+parseUntil :: ∀ e a f. 
+  Unfoldable f => 
+  ParserError e => Eq e => -- error gotta have Eq so we can find eof
+  (a -> f a -> f a) -> -- cons function for Foldable f 
+  (f a -> f a) ->  -- reverse function for Foldable f
+  Parser e a -> 
+  Parser e (f a)
 parseUntil cons rev p = Parser (aux none)
   where
     aux acc s = 
@@ -98,7 +104,7 @@ parseUntil cons rev p = Parser (aux none)
         Left e -> if e == eof then pure $ Tuple s (rev acc) else Left e
         Right (Tuple s2 x) -> aux (cons x acc) s2 
 
-parseUntil' :: ∀ e a. ParserError e => Parser e a -> Parser e (Array a)
+parseUntil' :: ∀ e a. ParserError e => Eq e => Parser e a -> Parser e (Array a)
 parseUntil' = parseUntil cons reverse
 
 instance stringParserError :: ParserError String where
