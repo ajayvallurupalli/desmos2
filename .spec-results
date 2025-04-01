@@ -1,0 +1,65 @@
+[
+  [
+    "parse eof error when empty",
+    {
+      "timestamp": "1743384164951.0",
+      "success": false
+    }
+  ],
+  [
+    "parse invalid character",
+    {
+      "timestamp": "1743384496769.0",
+      "success": true
+    }
+  ],
+  [
+    "parse parse empty",
+    {
+      "timestamp": "1743384496769.0",
+      "success": true
+    }
+  ],
+  [
+    "parse parse everything",
+    {
+      "timestamp": "1743384496769.0",
+      "success": true
+    }
+  ],
+  [
+    "parse parse letters",
+    {
+      "timestamp": "1743384496769.0",
+      "success": true
+    }
+  ],
+  [
+    "parse parse number",
+    {
+      "timestamp": "1743384496769.0",
+      "success": true
+    }
+  ],
+  [
+    "parse parse parenthesis",
+    {
+      "timestamp": "1743384496769.0",
+      "success": true
+    }
+  ],
+  [
+    "parse parse tokens",
+    {
+      "timestamp": "1743383159077.0",
+      "success": true
+    }
+  ],
+  [
+    "parse special character",
+    {
+      "timestamp": "1743384496769.0",
+      "success": true
+    }
+  ]
+]
