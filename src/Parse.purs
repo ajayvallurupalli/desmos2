@@ -7,16 +7,16 @@ module Parse
 import Prelude
 
 import Control.Alt ((<|>))
-import Data.Array (uncons)
+import Data.Array (foldl)
 import Data.CodePoint.Unicode (isDecDigit, isLetter, isPunctuation, isSymbol)
 import Data.Either (Either(..))
+import Data.Generic.Rep (class Generic)
 import Data.Maybe (Maybe(..))
 import Data.Number (fromString)
-import Data.String.CodePoints (codePointFromChar)
+import Data.Show.Generic (genericShow)
+import Data.String.CodePoints (CodePoint, codePointFromChar)
 import Data.String.CodeUnits (fromCharArray)
 import Data.Tuple (Tuple(..))
-import Data.Generic.Rep (class Generic)
-import Data.Show.Generic (genericShow)
 import Parser as P
 
 data ParsePart 
@@ -41,8 +41,11 @@ isParenthesis c =
 isLetterOrSymbol :: Char -> Boolean
 isLetterOrSymbol = codePointFromChar >>> (isLetter || isPunctuation || isSymbol)
 
+isPeriod :: CodePoint -> Boolean
+isPeriod c = c == codePointFromChar '.' 
+
 isDigit :: Char -> Boolean 
-isDigit = codePointFromChar >>> isDecDigit
+isDigit = codePointFromChar >>> (isDecDigit || isPeriod)
 
 parseNumber :: ∀ e. P.Parser e Number
 parseNumber = P.Parser \s -> do
@@ -61,17 +64,9 @@ parseDigit = P.Parser \s -> do
 parseParenthesis :: ∀ e. P.Parser e ParsePart
 parseParenthesis = P.Parser \s -> do
   (Tuple l ps) <- (P.parse $ P.some' $ P.satisfy' isParenthesis) s
-  
-  let 
-    aux :: Int -> Array Char -> Int
-    aux acc lst =
-      case uncons lst of 
-        Nothing -> acc
-        Just {head, tail} -> 
-          if head == '(' then aux (acc + 1) tail 
-          else aux (acc - 1) tail
-
-  Right $ Tuple l (Parenthesis $ aux 0 ps)
+  Right $ Tuple l (Parenthesis $ aux ps)
+  where 
+  aux = foldl (\acc e -> if e == '(' then acc + 1 else acc - 1) 0
 
 parseLetters :: ∀ e. P.ParserError e => P.Parser e ParsePart
 parseLetters = (P.some' $ P.satisfy' (isLetterOrSymbol && not isParenthesis))

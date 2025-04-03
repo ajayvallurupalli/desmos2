@@ -1,5 +1,411 @@
 [
   [
+    "MATH! Binary",
+    {
+      "timestamp": "1743692207787.0",
+      "success": true
+    }
+  ],
+  [
+    "MATH! Binary Pemdas 1",
+    {
+      "timestamp": "1743692207787.0",
+      "success": true
+    }
+  ],
+  [
+    "MATH! Binary Pemdas 2",
+    {
+      "timestamp": "1743692207787.0",
+      "success": true
+    }
+  ],
+  [
+    "MATH! Binary and Unary 1",
+    {
+      "timestamp": "1743691243537.0",
+      "success": true
+    }
+  ],
+  [
+    "MATH! Binary and Unary 1a",
+    {
+      "timestamp": "1743692207787.0",
+      "success": true
+    }
+  ],
+  [
+    "MATH! Binary and Unary 1b",
+    {
+      "timestamp": "1743692207787.0",
+      "success": true
+    }
+  ],
+  [
+    "MATH! Binary and Unary 2",
+    {
+      "timestamp": "1743692207787.0",
+      "success": true
+    }
+  ],
+  [
+    "MATH! Constants",
+    {
+      "timestamp": "1743692207787.0",
+      "success": true
+    }
+  ],
+  [
+    "MATH! Distribute",
+    {
+      "timestamp": "1743691713944.0",
+      "success": true
+    }
+  ],
+  [
+    "MATH! Distribute 1",
+    {
+      "timestamp": "1743692207787.0",
+      "success": true
+    }
+  ],
+  [
+    "MATH! Distribute 2",
+    {
+      "timestamp": "1743692207787.0",
+      "success": true
+    }
+  ],
+  [
+    "MATH! Function and Variable",
+    {
+      "timestamp": "1743692067141.0",
+      "success": true
+    }
+  ],
+  [
+    "MATH! Function and Variable 1",
+    {
+      "timestamp": "1743692207787.0",
+      "success": true
+    }
+  ],
+  [
+    "MATH! Function and Variable 2",
+    {
+      "timestamp": "1743692207787.0",
+      "success": true
+    }
+  ],
+  [
+    "MATH! Multiply",
+    {
+      "timestamp": "1743691105751.0",
+      "success": true
+    }
+  ],
+  [
+    "MATH! Multiply and Add 1",
+    {
+      "timestamp": "1743691105751.0",
+      "success": true
+    }
+  ],
+  [
+    "MATH! Multiply and Add 2",
+    {
+      "timestamp": "1743691105751.0",
+      "success": true
+    }
+  ],
+  [
+    "MATH! PEMDAS",
+    {
+      "timestamp": "1743690045711.0",
+      "success": true
+    }
+  ],
+  [
+    "MATH! Unary",
+    {
+      "timestamp": "1743692207787.0",
+      "success": true
+    }
+  ],
+  [
+    "MATH! Unary and Binary",
+    {
+      "timestamp": "1743690676281.0",
+      "success": false
+    }
+  ],
+  [
+    "MATH! Variable Heaven",
+    {
+      "timestamp": "1743692207787.0",
+      "success": true
+    }
+  ],
+  [
+    "MATH! Variables",
+    {
+      "timestamp": "1743692207787.0",
+      "success": true
+    }
+  ],
+  [
+    "Parse Add implicit multiplication",
+    {
+      "timestamp": "1743618605248.0",
+      "success": true
+    }
+  ],
+  [
+    "Parse Basic equation",
+    {
+      "timestamp": "1743692207787.0",
+      "success": true
+    }
+  ],
+  [
+    "Parse Binary",
+    {
+      "timestamp": "1743692207787.0",
+      "success": true
+    }
+  ],
+  [
+    "Parse Binary Unary",
+    {
+      "timestamp": "1743692207787.0",
+      "success": true
+    }
+  ],
+  [
+    "Parse Constant",
+    {
+      "timestamp": "1743692207787.0",
+      "success": true
+    }
+  ],
+  [
+    "Parse Empty",
+    {
+      "timestamp": "1743692207787.0",
+      "success": true
+    }
+  ],
+  [
+    "Parse Implicit multiplication from parenthesis",
+    {
+      "timestamp": "1743692207787.0",
+      "success": true
+    }
+  ],
+  [
+    "Parse Implict multiplication from variable",
+    {
+      "timestamp": "1743691642353.0",
+      "success": false
+    }
+  ],
+  [
+    "Parse Number",
+    {
+      "timestamp": "1743692207787.0",
+      "success": true
+    }
+  ],
+  [
+    "Parse Only implicit multiply when there's no operator",
+    {
+      "timestamp": "1743692207787.0",
+      "success": true
+    }
+  ],
+  [
+    "Parse Parenthesis depth",
+    {
+      "timestamp": "1743692207787.0",
+      "success": true
+    }
+  ],
+  [
+    "Parse Parse basic equation",
+    {
+      "timestamp": "1743618605248.0",
+      "success": true
+    }
+  ],
+  [
+    "Parse Parse binary",
+    {
+      "timestamp": "1743618605248.0",
+      "success": true
+    }
+  ],
+  [
+    "Parse Parse constant",
+    {
+      "timestamp": "1743618605248.0",
+      "success": true
+    }
+  ],
+  [
+    "Parse Parse number",
+    {
+      "timestamp": "1743618605248.0",
+      "success": true
+    }
+  ],
+  [
+    "Parse Parse parenthesis depth",
+    {
+      "timestamp": "1743618605248.0",
+      "success": true
+    }
+  ],
+  [
+    "Parse Parse unary",
+    {
+      "timestamp": "1743618605248.0",
+      "success": true
+    }
+  ],
+  [
+    "Parse Unary",
+    {
+      "timestamp": "1743692207787.0",
+      "success": true
+    }
+  ],
+  [
+    "Parse parse empty",
+    {
+      "timestamp": "1743618605248.0",
+      "success": true
+    }
+  ],
+  [
+    "Tokenize Empty",
+    {
+      "timestamp": "1743692207787.0",
+      "success": true
+    }
+  ],
+  [
+    "Tokenize Everything",
+    {
+      "timestamp": "1743692207787.0",
+      "success": true
+    }
+  ],
+  [
+    "Tokenize Int",
+    {
+      "timestamp": "1743692207787.0",
+      "success": true
+    }
+  ],
+  [
+    "Tokenize Invalid character",
+    {
+      "timestamp": "1743692207787.0",
+      "success": true
+    }
+  ],
+  [
+    "Tokenize Letters",
+    {
+      "timestamp": "1743692207787.0",
+      "success": true
+    }
+  ],
+  [
+    "Tokenize Number",
+    {
+      "timestamp": "1743692207787.0",
+      "success": true
+    }
+  ],
+  [
+    "Tokenize Parenthesis",
+    {
+      "timestamp": "1743692207787.0",
+      "success": true
+    }
+  ],
+  [
+    "Tokenize Special character",
+    {
+      "timestamp": "1743692207787.0",
+      "success": true
+    }
+  ],
+  [
+    "Tokenize tokenize empty",
+    {
+      "timestamp": "1743618605248.0",
+      "success": true
+    }
+  ],
+  [
+    "Tokenize tokenize everything",
+    {
+      "timestamp": "1743618605248.0",
+      "success": true
+    }
+  ],
+  [
+    "Tokenize tokenize invalid character",
+    {
+      "timestamp": "1743618605248.0",
+      "success": true
+    }
+  ],
+  [
+    "Tokenize tokenize letters",
+    {
+      "timestamp": "1743618605248.0",
+      "success": true
+    }
+  ],
+  [
+    "Tokenize tokenize number",
+    {
+      "timestamp": "1743618605248.0",
+      "success": true
+    }
+  ],
+  [
+    "Tokenize tokenize parenthesis",
+    {
+      "timestamp": "1743618605248.0",
+      "success": true
+    }
+  ],
+  [
+    "Tokenize tokenize special character",
+    {
+      "timestamp": "1743618605248.0",
+      "success": true
+    }
+  ],
+  [
+    "parse Parse binary",
+    {
+      "timestamp": "1743617693824.0",
+      "success": true
+    }
+  ],
+  [
+    "parse Parse number",
+    {
+      "timestamp": "1743617693824.0",
+      "success": true
+    }
+  ],
+  [
     "parse eof error when empty",
     {
       "timestamp": "1743384164951.0",
@@ -16,7 +422,7 @@
   [
     "parse parse empty",
     {
-      "timestamp": "1743474532823.0",
+      "timestamp": "1743617693824.0",
       "success": true
     }
   ],
@@ -59,6 +465,55 @@
     "parse special character",
     {
       "timestamp": "1743474532823.0",
+      "success": true
+    }
+  ],
+  [
+    "tokenize tokenize empty",
+    {
+      "timestamp": "1743617693824.0",
+      "success": true
+    }
+  ],
+  [
+    "tokenize tokenize everything",
+    {
+      "timestamp": "1743617693824.0",
+      "success": true
+    }
+  ],
+  [
+    "tokenize tokenize invalid character",
+    {
+      "timestamp": "1743617693824.0",
+      "success": true
+    }
+  ],
+  [
+    "tokenize tokenize letters",
+    {
+      "timestamp": "1743617693824.0",
+      "success": true
+    }
+  ],
+  [
+    "tokenize tokenize number",
+    {
+      "timestamp": "1743617693824.0",
+      "success": true
+    }
+  ],
+  [
+    "tokenize tokenize parenthesis",
+    {
+      "timestamp": "1743617693824.0",
+      "success": true
+    }
+  ],
+  [
+    "tokenize tokenize special character",
+    {
+      "timestamp": "1743617693824.0",
       "success": true
     }
   ]
