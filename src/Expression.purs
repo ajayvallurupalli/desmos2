@@ -20,6 +20,9 @@ import Parse (cutChars, ParsePart(..))
 type OperatorData =
   (precedence :: Int, parenthesisLevel :: Int, name :: String)
 
+type VariableData = 
+  {parenthesisLevel :: Int, symbol :: String}
+
 type Error = String -- I think it helps with making code more readable
 
 type Result = Either Error Expression
@@ -68,7 +71,7 @@ instance eqOperator :: Eq Operator where
 data Expression 
   = Value Number
   | Operator Operator
-  | Variable String
+  | Variable VariableData
 
 instance eqExpression :: Eq Expression where
   eq (Value v1) (Value v2) = v1 == v2
@@ -89,7 +92,10 @@ instance showExpression :: Show Expression where
       Value v -> "(Exp. Value: " <> show v <> ")"
       Operator (Binary b) -> if b.infix then showOperator "Infixed Binary" b else showOperator "Binary" b
       Operator (Unary u) -> showOperator "Unary" u
-      Variable v -> "(Exp. Variable: " <> v <> ")"
+      Variable v -> "(Exp. Variable: " <> v.symbol <> ")"
+
+variable :: String -> Expression
+variable s = Variable {parenthesisLevel: 0, symbol: s}
 
 type SymbolMap = (Map String Expression)
 
@@ -128,6 +134,7 @@ parseSymbols m s =
 parenthesize :: Int -> Expression -> Expression
 parenthesize pl (Operator (Binary b)) = Operator $ Binary $ b {parenthesisLevel = b.parenthesisLevel + pl}
 parenthesize pl (Operator (Unary u)) = Operator $  Unary $ u {parenthesisLevel = u.parenthesisLevel + pl}
+parenthesize pl (Variable v) = Variable $ v {parenthesisLevel = v.parenthesisLevel + pl}
 parenthesize _ other = other
 
 parse :: SymbolMap -> String -> Either Error (Array Expression)
@@ -149,12 +156,26 @@ parse m s = do
             _ -> acc {parenthesis = acc.parenthesis + p}
         Letter ls -> acc {result = append <$> (map (parenthesize acc.parenthesis) <$> (parseSymbols m ls)) <*> acc.result}
 
+fillVariable :: SymbolMap -> Expression -> Either Error Expression
+fillVariable m (Variable s) = 
+  case lookup s.symbol m of
+    Nothing -> Left $ "Error: Variable " <> s.symbol <> " does not exist"
+    Just (Variable s2) -> fillVariable m (Variable s2)
+    Just x -> pure (parenthesize s.parenthesisLevel x)
+fillVariable _ other = pure other
+
 fillVariables :: SymbolMap -> Array Expression -> Either Error (Array Expression)
-fillVariables m es = sequence (map aux es)
+fillVariables m es = sequence (map (fillVariable m) es)
+
+deleteExtraMultiplies :: Array Expression -> (Array Expression)
+deleteExtraMultiplies es = aux [] es
   where
-    aux :: Expression -> Either Error Expression
-    aux (Variable s) = note ("Error: Variable " <> s <> " does not exist") (lookup s m) 
-    aux other = pure other
+    aux acc [] = acc
+    aux acc dacc = 
+      let s = splitAt 2 dacc in
+      case s.before of 
+        [Operator x, Operator m] | m == mulop -> aux (append acc [Operator x]) s.after
+        other -> aux (append acc other) s.after
 
 lispify :: ∀ a. Error -> Error -> Array a -> Int -> Either Error (Array a)
 lispify e1 e2 a i = do
@@ -195,7 +216,7 @@ runOperator _ _ = Left "Error: ???"
 runExpressions :: Array Expression -> SymbolMap -> Either Error Number
 runExpressions e vm = do
   esv <- fillVariables vm e
-  aux esv
+  aux (deleteExtraMultiplies esv)
   where
     ierror = "Error: This error should be impossible" 
     argError = "Error: Invalid Number of Arguments"
@@ -207,7 +228,10 @@ runExpressions e vm = do
       let ni = if isInfix o then i else i + 1
       let snes = splitAt ni nes
       res <- runOperator o snes.after
-      let nxt = append (A.take (A.length snes.before - 1) snes.before) (cons (snd res) (fst res))
+      rres <- case snd res of
+        (Variable s) -> fillVariable vm (Variable s)
+        _ -> pure $ snd res
+      let nxt = append (A.take (A.length snes.before - 1) snes.before) (cons rres (fst res))
       aux nxt
 
 

@@ -9,7 +9,7 @@ import Data.Map (insert)
 import Data.Number (pi, sin)
 import Data.Tuple (Tuple(..), uncurry)
 import Effect (Effect)
-import Expression (Expression(..), Operator(..), addop, mulop, parse, runExpressions, sinop, transformBinary)
+import Expression (Expression(..), Operator(..), addop, deleteExtraMultiplies, mulop, parse, runExpressions, sinop, transformBinary, transformUnary, variable)
 import Parse (ParsePart(..), cutChars)
 import Test.Spec (describe, it, pending')
 import Test.Spec.Assertions (shouldEqual)
@@ -34,7 +34,7 @@ main = runSpecAndExitProcess [consoleReporter] do
     it "Everything" do
       cutChars "123(a+b)" `shouldEqual` Right [Digit 123.0, Parenthesis 1, Letter "a+b", Parenthesis (-1)]
     it "Invalid character" do
-      cutChars "\n" `shouldEqual` Left "''\\n'' is an invalid character."
+      cutChars "‎" `shouldEqual` Left "''‎'' is an invalid character."
   describe "Parse" do 
     let symbols = foldr (uncurry insert) empty [Tuple "*" (Operator mulop), Tuple "sin" (Operator sinop), Tuple "+" (Operator addop), Tuple "pi" (Value 3.14)]
     it "Empty" do
@@ -45,7 +45,7 @@ main = runSpecAndExitProcess [consoleReporter] do
       parse symbols "pi" `shouldEqual` Right [Value 3.14]
     it "Binary" do
       parse symbols "*" `shouldEqual` Right [Operator mulop]
-    it "Parenthesis depth" do
+    it "Parenthesis depth 1" do
       parse symbols "(*)" `shouldEqual` Right [Operator $ Binary $ {op: transformBinary mul "multiply", precedence: 10, parenthesisLevel: 1, infix: true, name: "*"}]
     it "Unary" do
       parse symbols "sin" `shouldEqual` Right [Operator sinop]
@@ -59,15 +59,20 @@ main = runSpecAndExitProcess [consoleReporter] do
       parse symbols "123*(456)" `shouldEqual` Right [Value 123.0, Operator mulop, Value 456.0]
     pending' "Implict multiplication from variable" do
       parse symbols "3pi" `shouldEqual` Right [Value 3.0, Operator mulop, Value 3.14]
+    describe "Other" do
+      it "deleteExtraMultiplies 1" do
+        ((parse symbols "sin*32*sin*") <#> deleteExtraMultiplies) `shouldEqual` Right [Operator sinop, Value 32.0, Operator mulop, Operator sinop]
+      it "deleteExtraMultiplies 2" do
+        ((parse symbols "123*456") <#> deleteExtraMultiplies) `shouldEqual` Right [Value 123.0, Operator mulop, Value 456.0]
   describe "MATH!" do
     let symbols = foldr (uncurry insert) empty [
         Tuple "*" (Operator mulop)
       , Tuple "sin" (Operator sinop)
       , Tuple "+" (Operator addop)
       , Tuple "pi" (Value pi)
-      , Tuple "x" (Variable "x")
-      , Tuple "si" (Variable "si")
-      , Tuple "o" (Variable "o")
+      , Tuple "x" (variable "x")
+      , Tuple "si" (variable "si")
+      , Tuple "o" (variable "o")
     ]
     let variables = foldr (uncurry insert) empty [Tuple "x" (Value 3.0), Tuple "si" (Value 100.0), Tuple "o" (Operator sinop)]
     it "Binary" do
@@ -115,5 +120,15 @@ main = runSpecAndExitProcess [consoleReporter] do
     it "Variable Heaven" do
       (parse symbols "si(osi)" >>= 
         \es -> runExpressions es variables) `shouldEqual` pure (100.0 * (sin 100.0))
+    describe "Loco" do
+      let varop _ = Right $ (variable "x")
+      let var = Unary $ {op: varop, precedence: 20, parenthesisLevel: 0, name: "var"}
+      let newSymbols = insert "var" (Operator var) symbols
+      it "Loco" do
+        (parse newSymbols "var 1" >>= 
+          \es -> runExpressions es variables) `shouldEqual` pure 3.0
+      it "Loco Loco" do
+        (parse newSymbols "o(var 1)" >>= 
+          \es -> runExpressions es variables) `shouldEqual` pure (sin 3.0)
     
       

@@ -8,7 +8,7 @@ import Prelude
 
 import Control.Alt ((<|>))
 import Data.Array (foldl)
-import Data.CodePoint.Unicode (isDecDigit, isLetter, isPunctuation, isSymbol)
+import Data.CodePoint.Unicode (isDecDigit, isLetter, isPunctuation, isSpace, isSymbol)
 import Data.Either (Either(..))
 import Data.Generic.Rep (class Generic)
 import Data.Maybe (Maybe(..))
@@ -68,6 +68,11 @@ parseParenthesis = P.Parser \s -> do
   where 
   aux = foldl (\acc e -> if e == '(' then acc + 1 else acc - 1) 0
 
+parseSpace :: ∀ e. P.Parser e Unit
+parseSpace = P.Parser \s -> do
+  (Tuple l _) <- (P.parse $ P.many' $ P.satisfy' (codePointFromChar >>> isSpace)) s
+  Right $ Tuple l unit
+
 parseLetters :: ∀ e. P.ParserError e => P.Parser e ParsePart
 parseLetters = (P.some' $ P.satisfy' (isLetterOrSymbol && not isParenthesis))
   >>= \cs -> pure $ Letter (fromCharArray cs)
@@ -76,7 +81,7 @@ cutChars :: String -> Either String (Array ParsePart)
 cutChars = 
   let 
     parser :: P.Parser String (Array ParsePart)
-    parser = P.parseUntil' $ parseDigit <|> parseLetters <|> parseParenthesis
+    parser = P.parseUntil' $ parseSpace *> (parseDigit <|> parseLetters <|> parseParenthesis)
   in 
     P.parse parser >>> P.unwrap
 
