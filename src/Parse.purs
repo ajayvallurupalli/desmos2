@@ -64,7 +64,7 @@ parseDigit = P.Parser \s -> do
 parseParenthesis :: ∀ e. P.Parser e ParsePart
 parseParenthesis = P.Parser \s -> do
   (Tuple l ps) <- (P.parse $ P.some' $ P.satisfy' isParenthesis) s
-  Right $ Tuple l (Parenthesis $ aux ps)
+  Right $ Tuple l  (Parenthesis (aux ps))
   where 
   aux = foldl (\acc e -> if e == '(' then acc + 1 else acc - 1) 0
 

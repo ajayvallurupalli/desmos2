@@ -39,7 +39,7 @@ instance applicativeParser :: Applicative (Parser e) where
 instance altParser :: Alt (Parser e) where
   alt l r = Parser \s -> case parse l s of
     Left _ -> parse r s
-    Right x -> Right x
+    x@(Right _) -> x
 
 instance bindParser :: Bind (Parser e) where
   bind p f = Parser \s -> do
