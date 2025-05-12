@@ -2,21 +2,21 @@
   [
     "MATH! Binary",
     {
-      "timestamp": "1743886310553.0",
+      "timestamp": "1746193359981.0",
       "success": true
     }
   ],
   [
     "MATH! Binary Pemdas 1",
     {
-      "timestamp": "1743886310553.0",
+      "timestamp": "1746193359981.0",
       "success": true
     }
   ],
   [
     "MATH! Binary Pemdas 2",
     {
-      "timestamp": "1743886310553.0",
+      "timestamp": "1746193359981.0",
       "success": true
     }
   ],
@@ -30,28 +30,28 @@
   [
     "MATH! Binary and Unary 1a",
     {
-      "timestamp": "1743886310553.0",
+      "timestamp": "1746193359981.0",
       "success": true
     }
   ],
   [
     "MATH! Binary and Unary 1b",
     {
-      "timestamp": "1743886310553.0",
+      "timestamp": "1746193359981.0",
       "success": true
     }
   ],
   [
     "MATH! Binary and Unary 2",
     {
-      "timestamp": "1743886310553.0",
+      "timestamp": "1746193359981.0",
       "success": true
     }
   ],
   [
     "MATH! Constants",
     {
-      "timestamp": "1743886310553.0",
+      "timestamp": "1746193359981.0",
       "success": true
     }
   ],
@@ -65,14 +65,14 @@
   [
     "MATH! Distribute 1",
     {
-      "timestamp": "1743886310553.0",
+      "timestamp": "1746193359981.0",
       "success": true
     }
   ],
   [
     "MATH! Distribute 2",
     {
-      "timestamp": "1743886310553.0",
+      "timestamp": "1746193359981.0",
       "success": true
     }
   ],
@@ -86,14 +86,14 @@
   [
     "MATH! Function and Variable 1",
     {
-      "timestamp": "1743886310553.0",
+      "timestamp": "1746193359981.0",
       "success": true
     }
   ],
   [
     "MATH! Function and Variable 2",
     {
-      "timestamp": "1743886310553.0",
+      "timestamp": "1746193359981.0",
       "success": true
     }
   ],
@@ -107,14 +107,14 @@
   [
     "MATH! Loco Loco",
     {
-      "timestamp": "1743886310553.0",
+      "timestamp": "1746193359981.0",
       "success": true
     }
   ],
   [
     "MATH! Loco Loco Loco",
     {
-      "timestamp": "1743886310553.0",
+      "timestamp": "1746193359981.0",
       "success": true
     }
   ],
@@ -149,7 +149,7 @@
   [
     "MATH! Unary",
     {
-      "timestamp": "1743886310553.0",
+      "timestamp": "1746193359981.0",
       "success": true
     }
   ],
@@ -163,14 +163,14 @@
   [
     "MATH! Variable Heaven",
     {
-      "timestamp": "1743886310553.0",
+      "timestamp": "1746193359981.0",
       "success": true
     }
   ],
   [
     "MATH! Variables",
     {
-      "timestamp": "1743886310553.0",
+      "timestamp": "1746193359981.0",
       "success": true
     }
   ],
@@ -184,63 +184,112 @@
   [
     "Parse Basic equation",
     {
-      "timestamp": "1743886310553.0",
+      "timestamp": "1746193359981.0",
       "success": true
     }
   ],
   [
     "Parse Binary",
     {
-      "timestamp": "1743886310553.0",
+      "timestamp": "1746193359981.0",
       "success": true
     }
   ],
   [
     "Parse Binary Unary",
     {
-      "timestamp": "1743886310553.0",
+      "timestamp": "1746193359981.0",
       "success": true
     }
   ],
   [
     "Parse Constant",
     {
-      "timestamp": "1743886310553.0",
+      "timestamp": "1746193359981.0",
       "success": true
     }
   ],
   [
     "Parse Empty",
     {
-      "timestamp": "1743886310553.0",
+      "timestamp": "1746193359981.0",
+      "success": true
+    }
+  ],
+  [
+    "Parse Implicit Multiplication From parenthesis",
+    {
+      "timestamp": "1746193359981.0",
+      "success": true
+    }
+  ],
+  [
+    "Parse Implicit Multiplication From variable",
+    {
+      "timestamp": "1746193359981.0",
+      "success": true
+    }
+  ],
+  [
+    "Parse Implicit Multiplication Only when no commas Symbol Values",
+    {
+      "timestamp": "1746193359981.0",
+      "success": true
+    }
+  ],
+  [
+    "Parse Implicit Multiplication Only when there's no operator",
+    {
+      "timestamp": "1746193359981.0",
+      "success": true
+    }
+  ],
+  [
+    "Parse Implicit Multiplication Three Symbol Values",
+    {
+      "timestamp": "1746193359981.0",
+      "success": true
+    }
+  ],
+  [
+    "Parse Implicit Multiplication Two Values",
+    {
+      "timestamp": "1744135941731.0",
       "success": true
     }
   ],
   [
     "Parse Implicit multiplication from parenthesis",
     {
-      "timestamp": "1743886310553.0",
+      "timestamp": "1744135551752.0",
       "success": true
     }
   ],
   [
     "Parse Implict multiplication from variable",
     {
-      "timestamp": "1743691642353.0",
+      "timestamp": "1744133441381.0",
+      "success": false
+    }
+  ],
+  [
+    "Parse Implict multiplication from variable 2",
+    {
+      "timestamp": "1744133510529.0",
       "success": false
     }
   ],
   [
     "Parse Number",
     {
-      "timestamp": "1743886310553.0",
+      "timestamp": "1746193359981.0",
       "success": true
     }
   ],
   [
     "Parse Only implicit multiply when there's no operator",
     {
-      "timestamp": "1743886310553.0",
+      "timestamp": "1744135551752.0",
       "success": true
     }
   ],
@@ -275,7 +324,7 @@
   [
     "Parse Parenthesis depth 1",
     {
-      "timestamp": "1743886310553.0",
+      "timestamp": "1746193359981.0",
       "success": true
     }
   ],
@@ -331,7 +380,7 @@
   [
     "Parse Unary",
     {
-      "timestamp": "1743886310553.0",
+      "timestamp": "1746193359981.0",
       "success": true
     }
   ],
@@ -343,58 +392,65 @@
     }
   ],
   [
+    "Tokenize Comma",
+    {
+      "timestamp": "1746193359981.0",
+      "success": true
+    }
+  ],
+  [
     "Tokenize Empty",
     {
-      "timestamp": "1743886310553.0",
+      "timestamp": "1746193359981.0",
       "success": true
     }
   ],
   [
     "Tokenize Everything",
     {
-      "timestamp": "1743886310553.0",
+      "timestamp": "1746193359981.0",
       "success": true
     }
   ],
   [
     "Tokenize Int",
     {
-      "timestamp": "1743886310553.0",
+      "timestamp": "1746193359981.0",
       "success": true
     }
   ],
   [
     "Tokenize Invalid character",
     {
-      "timestamp": "1743886310553.0",
+      "timestamp": "1746193359981.0",
       "success": true
     }
   ],
   [
     "Tokenize Letters",
     {
-      "timestamp": "1743886310553.0",
+      "timestamp": "1746193359981.0",
       "success": true
     }
   ],
   [
     "Tokenize Number",
     {
-      "timestamp": "1743886310553.0",
+      "timestamp": "1746193359981.0",
       "success": true
     }
   ],
   [
     "Tokenize Parenthesis",
     {
-      "timestamp": "1743886310553.0",
+      "timestamp": "1746193359981.0",
       "success": true
     }
   ],
   [
     "Tokenize Special character",
     {
-      "timestamp": "1743886310553.0",
+      "timestamp": "1746193359981.0",
       "success": true
     }
   ],

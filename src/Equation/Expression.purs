@@ -1,5 +1,6 @@
-module Expression
-  ( BinaryOperator
+module Equation.Expression
+  ( AnyOperator
+  , BinaryOperator
   , Error
   , Expression(..)
   , GenereralData
@@ -11,8 +12,11 @@ module Expression
   , ValueData
   , VariableData
   , VariableMap(..)
+  , VariableType(..)
   , emptyState
   , fromExpression
+  , getOperatorDependencies
+  , getVariableDependencies
   , mulop
   , opName
   , parenthesisLevelOf
@@ -33,7 +37,7 @@ module Expression
 import Prelude
 
 import Data.Array (cons, foldl, head, reverse, splitAt, uncons, updateAt, (!!))
-import Data.Array (length, take) as A
+import Data.Array (filter, length, take) as A
 import Data.Either (Either(..), hush, note)
 import Data.FoldableWithIndex (foldlWithIndex)
 import Data.Generic.Rep (class Generic)
@@ -46,7 +50,7 @@ import Data.String (length, take)
 import Data.String.CodeUnits (toCharArray, singleton)
 import Data.Traversable (sequence)
 import Data.Tuple (Tuple(..), fst, snd)
-import Parse (cutChars, ParsePart(..))
+import Equation.Parse (cutChars, ParsePart(..))
 
 
 type GenereralData = (parenthesisLevel :: Int)
@@ -55,7 +59,7 @@ type OperatorData =
   (precedence :: Int, name :: String | GenereralData)
 
 type VariableData = 
-  {symbol :: String | GenereralData}
+  {symbol :: String, type' :: VariableType | GenereralData}
 
 type ValueData = 
   {num :: Number | GenereralData}
@@ -72,6 +76,12 @@ type BinaryOperator = {
 
 type UnaryOperator = {
   op :: (Expression -> Result)
+  | OperatorData
+}
+
+type AnyOperator = {
+  op :: (Array Expression -> Result),
+  n :: Int
   | OperatorData
 }
 
@@ -110,10 +120,12 @@ mulop = Binary $ {op: transformBinary mul "multiply", precedence: 10, parenthesi
 data Operator 
   = Unary UnaryOperator
   | Binary BinaryOperator
+  | Any AnyOperator
 
 opName :: Operator -> String
 opName (Binary b) = b.name
 opName (Unary u) = u.name
+opName (Any a) = a.name
 
 instance eqOperator :: Eq Operator where
   eq (Binary b1) (Binary b2) = b1.name == b2.name
@@ -125,8 +137,14 @@ data Expression
   | Operator Operator
   | Variable VariableData
 
+data VariableType 
+  = Value'
+  | Operator'
+
+derive instance eqVariableType :: Eq VariableType
+
 instance eqExpression :: Eq Expression where
-  eq (Value v1) (Value v2) = v1 == v2
+  eq (Value v1) (Value v2) = v1.num == v2.num
   eq (Operator o1) (Operator o2) = o1 == o2
   eq (Variable v1) (Variable v2) = v1 == v2
   eq _ _ = false
@@ -144,6 +162,7 @@ instance showExpression :: Show Expression where
       Value v -> "(Exp. Value: " <> show v.num <> ")"
       Operator (Binary b) -> if b.infix then showOperator "Infixed Binary" b else showOperator "Binary" b
       Operator (Unary u) -> showOperator "Unary" u
+      Operator (Any a) -> showOperator (show a.n <> "-arg") a
       Variable v -> "(Exp. Variable: " <> v.symbol <> ")"
 
 -- inverse of the whole parsing thing
@@ -155,11 +174,12 @@ fromExpression (Variable v) = v.symbol
 parenthesisLevelOf :: Expression -> Int
 parenthesisLevelOf (Operator (Binary b)) = b.parenthesisLevel
 parenthesisLevelOf (Operator (Unary u)) = u.parenthesisLevel
+parenthesisLevelOf (Operator (Any a)) = a.parenthesisLevel
 parenthesisLevelOf (Variable v) = v.parenthesisLevel
 parenthesisLevelOf (Value v) = v.parenthesisLevel
 
-variable :: String -> Expression
-variable s = Variable {parenthesisLevel: 0, symbol: s}
+variable :: String -> VariableType -> Expression
+variable s vt = Variable {parenthesisLevel: 0, symbol: s, type': vt}
 
 value :: Number -> Expression
 value n = Value {parenthesisLevel: 0, num: n}
@@ -186,32 +206,24 @@ instance showVariableMap :: Show VariableMap where
 unionVariables :: VariableMap -> VariableMap -> VariableMap
 unionVariables = over2 VariableMap union 
 
-type State = {
-  parenthesis :: Int,
-  result :: Either Error (Array Expression)
-}
-
-emptyState :: State
-emptyState = {parenthesis: 0, result: Right []}
-
 prefixEqual :: String -> String -> Boolean
 prefixEqual p s = p == (take (length p) s)
 
 possibleStrings :: SymbolMap -> String -> (Array String) 
 possibleStrings m s = toUnfoldable $ filter (prefixEqual s) (keys (unwrap m))
 
---yeah idk how this works but it does
 parseSymbols :: SymbolMap -> String -> Either Error (Array Expression)
 parseSymbols sm@(SymbolMap m) s = 
   let 
     error = "Error: '" <> s <> "' is not a binded variable or function."  
+    aux :: Either Error (Array Expression) -> String -> Array Char -> Either Error (Array Expression)
     aux acc sacc cs =
       case uncons cs of 
         Nothing -> if sacc == "" then acc else cons <$> (note error (lookup sacc m)) <*> acc
         Just {head, tail} -> 
           if 0 == A.length (possibleStrings sm (sacc <> singleton head)) then 
             if sacc == "" then Left $ error else 
-              aux (cons <$> (note "This Error shouldn't be possible" (lookup sacc m)) <*> acc) "" cs --the Value 0.0 is an error
+              aux (cons <$> (note "This Error shouldn't be possible" (lookup sacc m)) <*> acc) "" cs
           else 
             aux acc (sacc <> singleton head) tail
   in 
@@ -227,7 +239,7 @@ parseSymbols' sm s =
         Just {head, tail} -> 
           if 0 == A.length (possibleStrings sm (sacc <> singleton head)) then 
             if sacc == "" then Left $ error else 
-              aux (cons sacc <$> acc) "" cs --the Value 0.0 is an error
+              aux (cons sacc <$> acc) "" cs
           else 
             aux acc (sacc <> singleton head) tail
   in 
@@ -236,9 +248,32 @@ parseSymbols' sm s =
 -- idk if theres a way to not need to type every one. Theres no generic constructor / pattern match constructor
 parenthesize :: Int -> Expression -> Expression
 parenthesize pl (Operator (Binary b)) = Operator $ Binary $ b {parenthesisLevel = b.parenthesisLevel + pl}
-parenthesize pl (Operator (Unary u)) = Operator $  Unary $ u {parenthesisLevel = u.parenthesisLevel + pl}
+parenthesize pl (Operator (Unary u))  = Operator $ Unary $ u {parenthesisLevel = u.parenthesisLevel + pl}
+parenthesize pl (Operator (Any u))  = Operator $ Any $ u {parenthesisLevel = u.parenthesisLevel + pl}
 parenthesize pl (Variable v) = Variable $ v {parenthesisLevel = v.parenthesisLevel + pl}
 parenthesize pl (Value v) = Value $ v {parenthesisLevel = v.parenthesisLevel + pl}
+
+type State = {
+  parenthesis :: Int,
+  result :: Either Error (Array Expression),
+  comma :: Boolean
+}
+
+emptyState :: State
+emptyState = {parenthesis: 0, result: Right [], comma: false}
+
+processVariables :: Array Expression -> Array Expression 
+processVariables es = aux [] es
+  where
+    aux acc [] = acc
+    aux acc dacc = 
+      let s = splitAt 2 dacc in
+      case s.before of 
+        [v1@(Variable {type': Value'}), v2@(Variable {type': Value'})] -> aux (append acc [v1, (Operator mulop)]) (cons v2 s.after)
+        [v1@(Variable {type': Value'}), v2@(Value _)] -> aux (append acc [v1, (Operator mulop)]) (cons v2 s.after)
+        [v1@(Value _), v2@(Variable {type': Value'})] -> aux (append acc [v1, (Operator mulop)]) (cons v2 s.after)
+        [v1@(Value _), v2@(Value _)] -> aux (append acc [v1, (Operator mulop)]) (cons v2 s.after)
+        other -> aux (append acc other) s.after
 
 parse :: SymbolMap -> String -> Either Error (Array Expression)
 parse m s = do
@@ -248,16 +283,27 @@ parse m s = do
     if r.parenthesis /= 0 then Left "Error: Unequal number of parenthesis."
     else pure $ reverse result
   where
+    varOrVal (Value _) = true 
+    varOrVal (Variable {type': Value'}) = true
+    varOrVal _ = false
     aux :: State -> ParsePart -> State
     aux acc pp = 
       case pp of 
-        Digit d -> acc {result = cons (parenthesize acc.parenthesis $ value d) <$> acc.result}
+        Digit d -> acc {result = cons (parenthesize acc.parenthesis $ value d) <$> acc.result, comma = false}
         Parenthesis p -> 
           case hush acc.result >>= head of
-            Just (Value _) | p > 0 -> acc {parenthesis = acc.parenthesis + p, result = cons (Operator mulop) <$> acc.result}
-            Just (Variable _) | p > 0 -> acc {parenthesis = acc.parenthesis + p, result = cons (Operator mulop) <$> acc.result}
-            _ -> acc {parenthesis = acc.parenthesis + p}
-        Letter ls -> acc {result = append <$> (map (parenthesize acc.parenthesis) <$> (parseSymbols m ls)) <*> acc.result}
+            Just v1 | p > 0 && varOrVal v1 -> acc {parenthesis = acc.parenthesis + p, result = cons (Operator mulop) <$> acc.result, comma = false}
+            _ -> acc {parenthesis = acc.parenthesis + p, comma = false}
+        Letter ls -> 
+          let symbols = (map (parenthesize acc.parenthesis) <$> processVariables <$> (parseSymbols m ls)) in
+          let noMulResult = append <$> symbols <*> acc.result in
+          if not acc.comma then
+            case (hush acc.result >>= head), (hush symbols >>= head) of 
+              Just v1, Just v2 | varOrVal v1 && varOrVal v2-> acc {result = append <$> symbols <*> (cons (Operator mulop) <$> acc.result), comma = false}
+              _, _ -> acc {result = noMulResult, comma = false}
+          else 
+            acc {result = noMulResult, comma = false}
+        Comma -> acc {comma = true}
 
 fillVariable :: VariableMap -> Expression -> Either Error Expression
 fillVariable m (Variable s) = 
@@ -270,16 +316,6 @@ fillVariable _ other = pure other
 fillVariables :: VariableMap -> Array Expression -> Either Error (Array Expression)
 fillVariables m es = sequence (map (fillVariable m) es)
 
-deleteExtraMultiplies :: Array Expression -> (Array Expression)
-deleteExtraMultiplies es = aux [] es
-  where
-    aux acc [] = acc
-    aux acc dacc = 
-      let s = splitAt 2 dacc in
-      case s.before of 
-        [Operator x, Operator m] | m == mulop -> aux (append acc [Operator x]) s.after
-        other -> aux (append acc other) s.after
-
 lispify :: ∀ a. Error -> Error -> Array a -> Int -> Either Error (Array a)
 lispify e1 e2 a i = do
     ati <- note e1 (a !! i)
@@ -290,6 +326,7 @@ lispify e1 e2 a i = do
 power :: Operator -> Int
 power (Binary {parenthesisLevel, precedence}) = parenthesisLevel * 100 + precedence 
 power (Unary {parenthesisLevel, precedence}) = parenthesisLevel * 100 + precedence
+power (Any {parenthesisLevel, precedence}) = parenthesisLevel * 100 + precedence
 
 maxPower :: Array Expression -> Int
 maxPower = fst <<< foldlWithIndex aux (Tuple (-1) (-1))
@@ -303,23 +340,35 @@ isInfix :: Expression -> Boolean
 isInfix (Operator (Binary b)) = b.infix
 isInfix _ = false
 
-runUnary :: UnaryOperator -> Array Expression -> Either Error (Expression)
+-- I should probably do UnaryOperator -> Array Expression -> Either Error Expression 
+--instead of cheating with array expression, but its easier 
+runUnary :: UnaryOperator -> Array Expression -> Either Error Expression
 runUnary u [x1] = u.op x1
 runUnary _ _ = Left "Error: Invalid Number of Arguments"
 
-runBinary :: BinaryOperator -> Array Expression -> Either Error (Expression)
+runBinary :: BinaryOperator -> Array Expression -> Either Error Expression
 runBinary b [x1, x2] = b.op x1 x2 
 runBinary _ _ = Left "Error: Invalid Number of Arguments"
+
+runAnyOp :: AnyOperator -> Array Expression -> Either Error Expression 
+runAnyOp a ls = if A.length ls /= a.n then Left "Error: Invalid Number of Arguments" else a.op ls
 
 runOperator :: Expression -> Array Expression -> Either Error (Tuple (Array Expression) Expression)
 runOperator (Operator (Unary u)) es = let s = splitAt 1 es in sequence $ Tuple s.after (runUnary u s.before)
 runOperator (Operator (Binary b)) es = let s = splitAt 2 es in sequence $ Tuple s.after (runBinary b s.before)
+runOperator (Operator (Any a)) es = let s = splitAt a.n es in sequence $ Tuple s.after (runAnyOp a s.before)
 runOperator _ _ = Left "Error: ???"
+
+cutOperator :: Expression -> Array Expression -> Tuple (Array Expression) Expression
+cutOperator (Operator (Unary _)) es = let s = splitAt 1 es in Tuple s.after (value 1.0)
+cutOperator (Operator (Binary _)) es = let s = splitAt 2 es in Tuple s.after (value 1.0)
+cutOperator (Operator (Any a)) es = let s = splitAt a.n es in Tuple s.after (value 1.0)
+cutOperator _ _ = Tuple [] (value 1.0) --should be impossible..?
 
 runExpressions :: Array Expression -> VariableMap -> Either Error Number
 runExpressions e vm = do
   esv <- fillVariables vm e
-  aux (deleteExtraMultiplies esv)
+  aux esv
   where
     ierror = "Error: This error should be impossible" 
     argError = "Error: Invalid Number of Arguments"
@@ -336,3 +385,32 @@ runExpressions e vm = do
         _ -> pure $ snd res
       let nxt = append (A.take (A.length snes.before - 1) snes.before) (cons rres (fst res))
       aux nxt
+
+--this one just pretends to do the math to find the dependencies
+--t(technicaly doesnt find all of them, because of functions that could return operators)
+--but I don't thinkthat's too important
+--and besides the only real way to solve that would be to make every operator list potential returns
+--or conduct analysis on all objects
+getOperatorDependencies :: Array Expression -> Either Error (Array Expression)
+getOperatorDependencies e = do
+  aux [] e
+  where
+    ierror = "Error: This error should be impossible" 
+    argError = "Error: Invalid Number of Arguments"
+    aux acc [Value _] = pure acc
+    aux acc es = do
+      let i = maxPower es 
+      o <- note ierror (es !! i)
+      nes <- if isInfix o then lispify argError ierror es i else pure es
+      let ni = if isInfix o then i else i + 1
+      let snes = splitAt ni nes
+      let res = cutOperator o snes.after
+      let rres = snd res
+      let nxt = append (A.take (A.length snes.before - 1) snes.before) (cons rres (fst res))
+      aux (cons o acc) nxt
+
+getVariableDependencies :: Array Expression -> Array Expression 
+getVariableDependencies = A.filter isVar
+  where
+    isVar (Variable _) = true
+    isVar _ = false

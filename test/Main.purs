@@ -10,9 +10,9 @@ import Data.Number (pi, sin)
 import Data.Tuple (Tuple(..), uncurry)
 import Effect (Effect)
 import Equation (emptyVariable)
-import Expression (Expression(..), Operator(..), SymbolMap(..), VariableMap(..), mulop, parenthesisLevelOf, parse, runExpressions, transformBinary, unionSymbols, value, variable)
-import Operators (symbols, sinop)
-import Parse (ParsePart(..), cutChars)
+import Equation.Expression (Expression(..), Operator(..), SymbolMap(..), VariableMap(..), VariableType(..), mulop, parenthesisLevelOf, parse, runExpressions, unionSymbols, value, variable)
+import Equation.Operators (symbols, sinop)
+import Equation.Parse (ParsePart(..), cutChars)
 import Test.Spec (describe, it, pending')
 import Test.Spec.Assertions (shouldEqual)
 import Test.Spec.Reporter (consoleReporter)
@@ -33,6 +33,8 @@ main = runSpecAndExitProcess [consoleReporter] do
       cutChars "πΨψ" `shouldEqual` Right [Letter "πΨψ"]
     it "Parenthesis" do
       cutChars "(()" `shouldEqual` Right [Parenthesis 1]
+    it "Comma" do
+      cutChars "," `shouldEqual` Right [Comma]
     it "Everything" do
       cutChars "123(a+b)" `shouldEqual` Right [Digit 123.0, Parenthesis 1, Letter "a+b", Parenthesis (-1)]
     it "Invalid character" do
@@ -50,18 +52,23 @@ main = runSpecAndExitProcess [consoleReporter] do
       (map parenthesisLevelOf <$> parse symbols "(*)") `shouldEqual` Right [1]
     it "Unary" do
       parse symbols "sin" `shouldEqual` Right [Operator sinop]
-    it "Binary Unary" do
-      parse symbols "2*sin(3.0)" `shouldEqual` Right [value 2.0, Operator mulop, Operator sinop, value 3.0]
+    it "Binary Unary" do 
+      (parse symbols "2*sin(3.0)") `shouldEqual` Right [value 2.0, Operator mulop, Operator sinop, value 3.0]
     it "Basic equation" do
       parse symbols "123*456" `shouldEqual` Right [value 123.0, Operator mulop, value 456.0]
-    it "Implicit multiplication from parenthesis" do
-      parse symbols "123(456)" `shouldEqual` Right [value 123.0, Operator mulop, value 456.0]
-    it "Only implicit multiply when there's no operator" do
-      parse symbols "123*(456)" `shouldEqual` Right [value 123.0, Operator mulop, value 456.0]
-    pending' "Implict multiplication from variable" do
-      parse symbols "3pi" `shouldEqual` Right [value 3.0, Operator mulop, value 3.14]
+    describe "Implicit Multiplication" do
+      it "From parenthesis" do
+        parse symbols "123(456)" `shouldEqual` Right [value 123.0, Operator mulop, value 456.0]
+      it "Only when there's no operator" do
+        parse symbols "123*(456)" `shouldEqual` Right [value 123.0, Operator mulop, value 456.0]
+      it "Three Symbol Values" do
+        parse symbols "pipipi" `shouldEqual` Right [value pi, Operator mulop, value pi, Operator mulop, value pi]
+      it "Only when no commas Symbol Values" do
+        parse symbols "pi,pi,pi" `shouldEqual` Right [value pi, value pi, value pi]
+      it "From variable" do
+        parse symbols "3pi" `shouldEqual` Right [value 3.0, Operator mulop, value pi]
   describe "MATH!" do
-    let variableSymbols = SymbolMap $ foldr (uncurry insert) empty [Tuple "x" (variable "x"), Tuple "si" (variable "si"), Tuple "o" (variable "o")]
+    let variableSymbols = SymbolMap $ foldr (uncurry insert) empty [Tuple "x" (variable "x" Value'), Tuple "si" (variable "si" Value'), Tuple "o" (variable "o" Operator')]
     let variables = VariableMap $ foldr (uncurry insert) empty [Tuple "x" (value 3.0), Tuple "si" (value 100.0), Tuple "o" (Operator sinop)]
     it "Binary" do
       (parse symbols "123*456" >>= 
@@ -109,7 +116,7 @@ main = runSpecAndExitProcess [consoleReporter] do
       (parse (unionSymbols variableSymbols symbols) "si(osi)" >>= 
         \es -> runExpressions es variables) `shouldEqual` pure (100.0 * (sin 100.0))
     describe "Loco" do
-      let varop _ = Right $ (variable "x")
+      let varop _ = Right $ (variable "x" Value')
       let var = Unary $ {op: varop, precedence: 20, parenthesisLevel: 0, name: "var"}
       let newSymbols = SymbolMap $ insert "var" (Operator var) (unwrap (unionSymbols variableSymbols symbols))
       it "Loco" do

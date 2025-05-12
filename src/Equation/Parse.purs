@@ -1,6 +1,7 @@
-module Parse
+module Equation.Parse
   ( ParsePart(..)
   , cutChars
+  , parseName
   )
   where
 
@@ -23,6 +24,7 @@ data ParsePart
   = Digit Number
   | Parenthesis Int
   | Letter String
+  | Comma
 
 derive instance genericParsePart :: Generic ParsePart _
 derive instance eqParsePart :: Eq ParsePart
@@ -47,6 +49,12 @@ isPeriod c = c == codePointFromChar '.'
 isDigit :: Char -> Boolean 
 isDigit = codePointFromChar >>> (isDecDigit || isPeriod)
 
+isComma :: Char -> Boolean 
+isComma = codePointFromChar >>> (_ == codePointFromChar ',')
+
+isSpace' :: Char -> Boolean 
+isSpace' = (codePointFromChar >>> isSpace)
+
 parseNumber :: ∀ e. P.Parser e Number
 parseNumber = P.Parser \s -> do
   p <- (P.parse $ P.some' $ P.satisfy' isDigit) s
@@ -70,18 +78,26 @@ parseParenthesis = P.Parser \s -> do
 
 parseSpace :: ∀ e. P.Parser e Unit
 parseSpace = P.Parser \s -> do
-  (Tuple l _) <- (P.parse $ P.many' $ P.satisfy' (codePointFromChar >>> isSpace)) s
+  (Tuple l _) <- (P.parse $ P.many' $ P.satisfy' isSpace') s
   Right $ Tuple l unit
 
+parseComma :: ∀ e. P.ParserError e => P.Parser e ParsePart 
+parseComma = P.satisfy' isComma >>= \_ -> pure Comma
+
 parseLetters :: ∀ e. P.ParserError e => P.Parser e ParsePart
-parseLetters = (P.some' $ P.satisfy' (isLetterOrSymbol && not isParenthesis))
+parseLetters = (P.some' $ P.satisfy' (isLetterOrSymbol && not isParenthesis && not isComma))
   >>= \cs -> pure $ Letter (fromCharArray cs)
 
 cutChars :: String -> Either String (Array ParsePart)
 cutChars = 
   let 
     parser :: P.Parser String (Array ParsePart)
-    parser = P.parseUntil' $ parseSpace *> (parseDigit <|> parseLetters <|> parseParenthesis)
+    parser = P.parseUntil' $ parseSpace *> (parseComma <|> parseDigit <|> parseLetters <|> parseParenthesis)
   in 
     P.parse parser >>> P.unwrap
 
+parseName :: ∀ e. Eq e => P.Parser e String 
+parseName = P.Parser \s -> do
+  (Tuple s2 res) <- P.parse (P.some' $ P.satisfy' (isLetterOrSymbol || isDigit)) s
+  (Tuple done _) <- P.parse (P.parseUntil' $ (P.some' $ P.satisfy' isSpace')) s2 --it throws away this just to make sure 
+  pure $ Tuple done (fromCharArray res)

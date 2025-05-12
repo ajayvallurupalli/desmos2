@@ -1,4 +1,4 @@
-module Textual where
+module Equation.Textual where
 
 import Prelude
 
@@ -13,13 +13,8 @@ import Data.Maybe (Maybe(..), fromMaybe)
 import Data.String (CodePoint, Pattern(..), codePointFromChar, fromCodePointArray, indexOf, splitAt, toCodePointArray)
 import Data.String.CodeUnits (fromCharArray, singleton, uncons)
 import Data.Tuple (Tuple(..), fst, snd)
-import Expression (SymbolMap, parseSymbols')
-import Parser (class ParserError, Parser(..), many', parse, parseFail, satisfy')
-
-
---(3^2+(2+(1)))^2
---(3^2+(2+(1))^2)
---(3^2+(2+(1)^2))
+import Equation.Expression (SymbolMap, parseSymbols')
+import Parser (class ParserError, Parser(..), many', some', parse, parseFail, satisfy')
 
 newtype TextEquation = TextEquation {
   main :: String,
@@ -81,7 +76,7 @@ isDigit :: Char -> Boolean
 isDigit = codePointFromChar >>> (isDecDigit || isPeriod)
 
 digits :: ∀ e. ParserError e => Parser e String 
-digits = fromCharArray <$> (many' $ satisfy' isDigit)
+digits = fromCharArray <$> (some' $ satisfy' isDigit)
 
 simplePhrase :: ∀ e. ParserError e => SymbolMap -> Parser e String 
 simplePhrase sm = Parser \s -> do
@@ -118,6 +113,7 @@ repeat :: Int -> Char -> String
 repeat 0 _ = ""
 repeat times char = fromCharArray $ aux [] times
   where
+    aux :: Array Char -> Int -> Array Char
     aux acc 0 = acc
     aux acc count = 
       aux (cons char acc) (count - 1)
@@ -172,99 +168,3 @@ textEquation sm = expdiv <|> eat
       pure $ Tuple "" (flatText s Nothing)
     text = \_ -> parse $ textEquation sm
     texteq = Just <<< TextEquation
-
---(bimap reverse reverse result) 
-
-
-{- makePhrases :: Array Expression -> Array TextEquation
-makePhrases es = reverse $ (aux [] "" es 0 0 0)
-  where
-    aux res acc lst abv bel pl = 
-      case uncons lst of
-        Nothing -> res 
-        Just {head: (Operator o), tail} | o == divop -> aux (cons Divide res) "" tail abv (bel + 1) pl
-        Just {head: (Operator o), tail} | o == powop -> aux (cons Exponent res) "" tail (abv + 1) bel pl
-        Just {head, tail} ->
-          let hp = parenthesisLevelOf head in
-          if hp == pl then --keep going
-            aux res (acc <> fromExpression head) tail abv bel pl
-          else --new
-            aux (cons (Phrase (acc <> fromExpression head) {parenthesis: pl, above: abv, below: bel}) res) "" tail abv bel hp
-
-
-{-
-
-import Data.Array (cons, reverse, uncons)
-import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Newtype (class Newtype, modify, unwrap)
-import Data.Tuple (Tuple(..), fst, snd)
-import Expression (Expression(Operator), Operator, fromExpression, parenthesisLevelOf, value)
-import Operators (divop, powop)
-
-newtype TextEquation = TextEquation 
-  { main :: String
-  , below :: Maybe TextEquation
-  , above :: Maybe TextEquation
-  , right :: Maybe TextEquation
-  , belowness :: Int
-  , aboveness :: Int
-  , parenthesis :: Int
-  }
-
-derive instance newtypeTextEquation :: Newtype TextEquation _
-derive instance eqTextEquation :: Eq TextEquation
-instance showTextEquation :: Show TextEquation where
-  show (TextEquation t) = 
-    "(" <> t.main <>
-      "[a:" <> show t.aboveness <> "b:" <> show t.belowness <> "p:" <> show t.parenthesis <> "]" <> 
-      (fromMaybe "" (map (\x -> " below: " <> show x) t.below)) <> 
-      (fromMaybe "" (map (\x -> " above: " <> show x) t.above)) <> --yeah its jank but i cant be bothered
-      (fromMaybe "" (map (\x -> " right: " <> show x) t.right)) <> 
-    ")"
-
-emptyTextEquation :: TextEquation 
-emptyTextEquation = TextEquation {main: mempty, below: Nothing, above: Nothing, right: Nothing, belowness: 0, aboveness: 0, parenthesis: 0}
-
--- we assume that a parenthesis follows any div or pow operation
--- so that we can keep track of where to end the part
-makeTextualRepresentation :: Array Expression -> TextEquation
-makeTextualRepresentation expressions = snd (aux $ Tuple expressions start)
-  where
-    initialParenthesis = (head >>> fromMaybe (value 1.0) >>> parenthesisLevelOf) expressions
-    start = inc initialParenthesis 0 0 (emptyTextEquation)
-    inc :: Int -> Int -> Int -> TextEquation -> TextEquation
-    inc pa be ab = modify (\r -> r {parenthesis = r.parenthesis + pa, aboveness = r.aboveness + ab, belowness = r.belowness + be})
-    aux :: Tuple (Array Expression) TextEquation -> Tuple (Array Expression) TextEquation
-    aux acc = 
-      let old = unwrap $ snd acc in
-      case uncons (fst acc) of
-        Nothing -> acc
-        Just {head: (Operator o), tail} | o == divop ->
-          if parenthesisLevelOf (Operator o) + 1 < old.parenthesis && (old.belowness > 0 || old.aboveness > 0) then 
-            acc
-          else
-            let parenthesis = fromMaybe ((parenthesisLevelOf (Operator o)) + 1) (parenthesisLevelOf <$> head tail) in
-            let below = aux $ Tuple tail (inc parenthesis 1 0 emptyTextEquation) in
-            let right = aux $ Tuple (fst below) (inc old.parenthesis 0 0 emptyTextEquation) in
-            Tuple [] (TextEquation $ old {below = Just (snd below), right = Just (snd right)})
-        Just {head: (Operator o), tail} | o == powop ->
-          if parenthesisLevelOf (Operator o) + 1 < old.parenthesis && (old.belowness > 0 || old.aboveness > 0) then 
-            acc 
-          else
-            let parenthesis = fromMaybe ((parenthesisLevelOf (Operator o)) + 1) (parenthesisLevelOf <$> head tail) in
-            let above = aux $ Tuple tail (inc parenthesis 0 1 emptyTextEquation) in
-            let right = aux $ Tuple (fst above) (inc old.parenthesis 0 0 emptyTextEquation) in
-            Tuple [] (TextEquation $ old {above = Just (snd above), right = Just (snd right)})
-        Just {head, tail} ->
-            let headParenthesis = parenthesisLevelOf head in
-            case compare headParenthesis old.parenthesis of 
-              EQ ->
-                aux $ Tuple tail (inc (headParenthesis - old.parenthesis) 0 0 (TextEquation $ old {main = old.main <> fromExpression head}))
-              LT | old.belowness > 0 || old.aboveness > 0 ->
-                acc
-              _ -> 
-                let right = aux $ Tuple (fst acc) (inc (parenthesisLevelOf head) 1 0 emptyTextEquation) in
-                Tuple [] (TextEquation $ old {right = Just (snd right)})
-
-
--}

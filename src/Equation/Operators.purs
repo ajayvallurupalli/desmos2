@@ -1,4 +1,4 @@
-module Operators
+module Equation.Operators
   ( addop
   , divop
   , noSymbols
@@ -15,7 +15,7 @@ import Data.Either (Either(..))
 import Data.Map (empty, insert)
 import Data.Number (cos, e, pi, pow, sin, tan)
 import Data.Tuple (uncurry, Tuple(..))
-import Expression (Expression(..), Operator(..), SymbolMap(..), mulop, opName, transformBinary, transformBinary', transformUnary, unionSymbols, value)
+import Equation.Expression (Expression(..), Operator(..), SymbolMap(..), VariableType(..), mulop, opName, transformBinary, transformBinary', transformUnary, unionSymbols, value, variable)
 
 safeDiv :: Number -> Number -> Either String Number
 safeDiv _ 0.0 = Left "Error: Divide by Zero"
@@ -79,5 +79,8 @@ basicOperators = createSymbolMap [mulop, addop, minop, divop, powop]
 realNumbers :: SymbolMap 
 realNumbers = SymbolMap $ foldr (uncurry insert) empty [Tuple "pi" pival, Tuple "e" eval, Tuple "π" pival]
 
+variables :: SymbolMap 
+variables = SymbolMap $ foldr (uncurry insert) empty [Tuple "x" (variable "x" Value'), Tuple "y" (variable "y" Value')]
+
 symbols :: SymbolMap
-symbols = foldr unionSymbols noSymbols [trigSymbols, basicOperators, realNumbers]
+symbols = foldr unionSymbols noSymbols [trigSymbols, basicOperators, realNumbers, variables]

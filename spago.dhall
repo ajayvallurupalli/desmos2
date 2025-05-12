@@ -12,19 +12,24 @@ to generate this file without the comments in this block.
 -}
 { name = "my-project"
 , dependencies =
-  [ "arrays"
+  [ "aff"
+  , "arrays"
+  , "bifunctors"
   , "console"
   , "control"
-  , "debug"
+  , "datetime"
   , "effect"
   , "either"
   , "foldable-traversable"
   , "functions"
+  , "halogen"
+  , "halogen-store"
   , "maybe"
   , "newtype"
   , "numbers"
   , "ordered-collections"
   , "prelude"
+  , "safe-coerce"
   , "spec"
   , "spec-node"
   , "strings"
@@ -32,6 +37,8 @@ to generate this file without the comments in this block.
   , "typelevel"
   , "unfoldable"
   , "unicode"
+  , "web-html"
+  , "web-uievents"
   ]
 , packages = ./packages.dhall
 , sources = [ "src/**/*.purs", "test/**/*.purs" ]

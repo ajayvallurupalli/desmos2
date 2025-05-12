@@ -8,4 +8,5 @@
 /.purs*
 /.psa*
 /.spago
-/src/StringTree.purs
+/dist/
+.parcel-cache/
